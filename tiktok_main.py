@@ -14,7 +14,8 @@ p = plt.imshow
 
 
 def file2links(file_name, pattern = 'https://www.tiktok.com/@{arg}'):
-    args = pd.read_csv(file_name)['0'].to_list()
+    df = pd.read_csv(file_name)
+    args = df[df.columns[0]].to_list()
     links = [pattern.format(arg=arg) for arg in args]
     return links
 
@@ -76,23 +77,11 @@ def do_max_scroll(driver, num_of_scrolls, check_hop=5):
             current_height = new_height
 
 
-def scrape_tiktok(driver, query, save_file, scrape_function, num_of_scrolls=50, wait_time=5):
-    driver.get(query)
-
-    wait(driver, wait_time)
-
-    try_solve_capture(driver)
-    
-    do_max_scroll(driver, num_of_scrolls)
-    scraped_info = scrape_function(driver)
-        
-    pd.Series(scraped_info).to_csv(save_file)
-
-
-def scrape_tiktok_pages(driver, queries, scrape_function, num_of_scrolls=50, load_wait_time=2):
+def scrape_pages(driver, queries, scrape_function, num_of_scrolls=50, load_wait_time=2):
     scraped_info_list = []
     for query in queries:
         try:
+            print('query', query)
             driver.get(query)
             driver.implicitly_wait(load_wait_time)
             time.sleep(load_wait_time)

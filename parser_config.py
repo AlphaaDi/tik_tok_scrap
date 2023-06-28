@@ -11,6 +11,11 @@ Option_Str2Func = {
     'remove_option': RemoveOption,
 }
 
+tiktok_search_config = {
+    'tag': ('./files/tag_bloggers_tiktok.yaml', 'https://www.tiktok.com/tag/{arg}'),
+    'search': ('./files/query_bloggers_tiktok.yaml', 'https://www.tiktok.com/search/user?q={arg}'),
+}
+
 def create_scrape_config(yaml_file):
     with open(yaml_file, "r") as stream:
         scrap_config = yaml.safe_load(stream)

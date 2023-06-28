@@ -131,5 +131,6 @@ def swipe_elem(driver, drag_element, offset_pixels):
     action.move_by_offset(offset_pixels, 0)
     action.release().perform()
 
+
 def tiktok_username2link(tiktok_username):
     return f'https://www.tiktok.com/@{tiktok_username}'

@@ -1,0 +1,48 @@
+scrap_option:
+  - 
+    field_table_name: 'user title'
+    scrap_func_str: 'get_tag_text'
+    attrs: 
+      data-e2e: 'user-title'
+  - 
+    field_table_name: 'user subtitle'
+    scrap_func_str: 'get_tag_text'
+    attrs: 
+      data-e2e: 'user-subtitle'
+  - 
+    field_table_name: 'followers count'
+    scrap_func_str: 'get_tag_text'
+    attrs: 
+      data-e2e: 'followers-count'
+  - 
+    field_table_name: 'likes count'
+    scrap_func_str: 'get_tag_text'
+    attrs: 
+      data-e2e: 'likes-count'
+  - 
+    field_table_name: 'user bio'
+    scrap_func_str: 'get_tag_text'
+    attrs: 
+      data-e2e: 'user-bio'
+  - 
+    field_table_name: 'video views'
+    scrap_func_str: 'get_all_tags_text'
+    attrs: 
+      data-e2e: 'video-views'
+add_option:
+  - 
+    field_table_name: 'user link'
+    func_to_tranform: 'get_tiktok_username2link'
+  - 
+    field_table_name: 'median views'
+    func_to_tranform: 'median_view'
+  - 
+    field_table_name: 'views bucket'
+    func_to_tranform: 'put_in_view_bucket'
+  - 
+    field_table_name: 'video count'
+    func_to_tranform: 'count_video'
+remove_option:
+  -
+    field_table_name: 'video views'
+

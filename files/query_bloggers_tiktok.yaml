@@ -1,0 +1,7 @@
+scrap_option:
+  - 
+    field_table_name: 'username'
+    scrap_func_str: 'get_all_tags_text'
+    attrs: 
+      data-e2e: 'search-user-unique-id'
+

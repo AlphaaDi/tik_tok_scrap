@@ -1,26 +1,39 @@
 import gradio as gr
 import os
+import re
 import numpy as np
 import pandas as pd
 from functools import partial
+from uuid import uuid1
 
-from scrape_utils import tiktok_username2link, get_location_by_city
-from tiktok_main import init_driver, scrape_tiktok, scrap_blogges_names, get_geo_preferences
-from tiktok_blocks_scrap import tiktok_num2count
-import info_scrap_multithread
+from scrape_utils import get_location_by_city
+from tiktok_main import init_driver, scrap_blogges_names, get_geo_preferences, scrape_pages
+from tiktok_blocks_scrap import tiktok_num2count, scrap_bloger_info
+import scrap_multithread
+from parser_config import *
 
 gr.close_all()
 files_dir = "/home/davinci/work/tiktok_scrap/data"
+temp_dir = '/home/davinci/work/tiktok_scrap/tmp'
 
 
-search_channel_config = {
-    'tag': ('challenge-item-username', 'https://www.tiktok.com/tag/{query}'),
-    'search': ('search-user-unique-id', 'https://www.tiktok.com/search/user?q={query}'),
-}
+def queries2file(queries):
+    df = pd.DataFrame(queries)
+    file_name = str(uuid1())
+    path = os.path.join(temp_dir, f"{file_name}.csv")
+    df.to_csv(path, index=False)
+    return path
 
-def scrap_blogger_info(tag_of_search, location, query):
+
+def reparse_csv(file_name):
+    lst = pd.read_csv(file_name).iloc[0][0]
+    matches = re.findall(r"'(.*?)'", lst)
+    pd.DataFrame(matches).to_csv(file_name, index=False)
+
+
+def scrap_blogger_info(tag_or_search, location, query):
     query = query.replace(' ', '%20')
-    nickname_tag_attr, link_pattern = search_channel_config[tag_of_search]
+    config_file_path, link_pattern = tiktok_search_config[tag_or_search]
 
     geo_preferences = {}
     if location != '':
@@ -28,26 +41,38 @@ def scrap_blogger_info(tag_of_search, location, query):
         geo_preferences = get_geo_preferences(coords)
         print('coords', coords)
 
-    driver = init_driver(preferences=geo_preferences)
-    names_output_file = os.path.join(files_dir, f'{tag_of_search}_{query}_bloggers.csv')
-    print('scrape_tiktok')
-    print(
-        link_pattern.format(query=query),
-        names_output_file,
-        nickname_tag_attr
+    names_output_file = os.path.join(files_dir, f'{tag_or_search}_{query}_bloggers.csv')
+
+    query_file_name = queries2file([query])
+
+    names_scrap_args = scrap_multithread.get_args(
+        config_path=config_file_path,
+        queries_file=query_file_name,
+        output_file=names_output_file,
+        num_worker=1
     )
-    scrape_tiktok(
-        driver,
-        link_pattern.format(query=query),
-        names_output_file,
-        partial(scrap_blogges_names, nickname_tag_attr)
+
+    scrap_multithread.scrape_info_from_list_name(
+        names_scrap_args, 
+        driver_preferences=geo_preferences,
+        num_of_scrolls=100,
+        pattern=link_pattern,
     )
-    driver = init_driver(preferences=geo_preferences)
-    info_scrap_args = info_scrap_multithread.get_default_args()
-    info_scrap_args.queries_file = names_output_file
-    info_scrap_args.output_file = os.path.join(files_dir, f'{tag_of_search}_{query}_information.csv')
+
+    reparse_csv(names_output_file)
+
+    print('os.remove(query_file_name)')
+    os.remove(query_file_name)
+
+    info_scrap_args = scrap_multithread.get_args(
+        queries_file=names_output_file,
+        output_file=os.path.join(files_dir, f'{tag_or_search}_{query}_information.csv'),
+    )
     print('info_scrap_args', info_scrap_args)
-    info_scrap_multithread.scrape_info_from_list_name(info_scrap_args, driver_preferences=geo_preferences)
+    scrap_multithread.scrape_info_from_list_name(
+        info_scrap_args, 
+        driver_preferences=geo_preferences,
+    )
     return f'result was saved in {info_scrap_args.output_file} \n '
 
 

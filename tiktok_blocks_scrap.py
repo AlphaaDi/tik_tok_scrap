@@ -107,8 +107,5 @@ def scrap_bloger_info(scrap_config, driver):
         elif isinstance(scrap_item, RemoveOption):
             field_table_name = scrap_item.field_table_name
             del items[field_table_name]
-
-    print('items', items)
-    print('scape', items['user title'])
     
     return items
